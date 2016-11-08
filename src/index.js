@@ -29,19 +29,19 @@ export default (dependencies) => {
   const router = new Router()
   router.get('/', async (req, res) => {
     try {
-      const promises = dependencies.map(dependency => {
-        switch (dependency.type) {
+      const promises = Object.keys(dependencies).map(key => {
+        switch (dependencies[key].type) {
           case 'mongo': {
-            return mongoCheck(dependency.instance)
+            return mongoCheck(dependencies[key].instance)
           }
           case 'oracle': {
-            return oracleCheck(dependency.instance)
+            return oracleCheck(dependencies[key].instance)
           }
           case 'api': {
-            return apiCheck(dependency.URL)
+            return apiCheck(dependencies[key].url)
           }
 
-          default: return Promise.reject
+          default: return Promise.reject()
         }
       })
 
