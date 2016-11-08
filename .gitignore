@@ -40,4 +40,5 @@ jspm_packages
 .DS_Store
 
 #Playground for test
+lib
 playground.js
