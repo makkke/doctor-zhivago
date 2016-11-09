@@ -1,5 +1,7 @@
+import 'babel-polyfill'
 import { OK } from 'http-status'
 import fetch from 'node-fetch'
+
 
 export const apiCheck = async (url) => {
   try {
