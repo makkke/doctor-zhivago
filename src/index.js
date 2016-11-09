@@ -1,59 +1,48 @@
+import { OK } from 'http-status'
 import fetch from 'node-fetch'
-import { Router } from 'express'
-import { OK, SERVICE_UNAVAILABLE } from 'http-status'
-
-if (!global._babelPolyfill) {
-  require('babel-polyfill')
-}
 
 export const apiCheck = async (url) => {
-  const response = await fetch(url)
+  try {
+    const response = await fetch(url)
 
-  if (!response.ok) return false
-
-  return true
+    return response.ok
+  } catch (err) {
+    return false
+  }
 }
 
-export const mongoCheck = async (mongoose) => {
-  return mongoose.connection.readyState === 1
-}
+export const mongoCheck = async mongoose => mongoose.connection.readyState === 1
 
 export const oracleCheck = async (oracledb) => {
-  const pong = await oracledb.ping()
-  if (!pong) return false
+  try {
+    const pong = await oracledb.ping()
 
-  return true
+    return pong
+  } catch (err) {
+    return false
+  }
 }
 
-export default (dependencies) => {
-  const router = new Router()
-  router.get('/', async (req, res) => {
-    try {
-      const promises = Object.keys(dependencies).map(key => {
-        switch (dependencies[key].type) {
-          case 'mongo': {
-            return mongoCheck(dependencies[key].instance)
-          }
-          case 'oracle': {
-            return oracleCheck(dependencies[key].instance)
-          }
-          case 'api': {
-            return apiCheck(dependencies[key].url)
-          }
+export default dependencies => async (req, res) => {
+  const promises = Object.keys(dependencies).map((key) => {
+    switch (dependencies[key].type) {
+      case 'mongo':
+        return mongoCheck(dependencies[key].instance)
 
-          default: return Promise.reject()
-        }
-      })
+      case 'oracle':
+        return oracleCheck(dependencies[key].instance)
 
-      const statuses = await Promise.all(promises)
+      case 'api':
+        return apiCheck(dependencies[key].url)
 
-      res.status(OK).json(dependencies.map((dependency, i) => {
-        return { [dependency.name]: statuses[i] }
-      }))
-    } catch (e) {
-      console.log(e)
-      res.status(SERVICE_UNAVAILABLE).json({})
+      default: return Promise.reject()
     }
   })
-  return router
+
+  const statuses = await Promise.all(promises)
+
+  const health = Object.keys(dependencies)
+    .reduce((acc, dependency, i) => ({ ...acc, [dependency]: statuses[i] }), {})
+
+  res.status(OK).json(health)
 }
