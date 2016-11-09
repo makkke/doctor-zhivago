@@ -38,3 +38,7 @@ jspm_packages
 
 # MAC FILE STRUCTURE CRAP
 .DS_Store
+
+#Playground for test
+lib
+playground.js
