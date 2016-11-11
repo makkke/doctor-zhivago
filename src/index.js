@@ -1,5 +1,18 @@
 import { OK } from 'http-status'
 import fetch from 'node-fetch'
+import tcpp from 'tcp-ping'
+
+function probe(hostname, port) {
+  return new Promise((resolve, reject) => {
+    tcpp.probe(hostname, port, (err, available) => {
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve(available)
+    })
+  })
+}
 
 export const apiCheck = async (url) => {
   try {
@@ -23,18 +36,23 @@ export const oracleCheck = async (oracledb) => {
   }
 }
 
+export const exchangeCheck = async (hostname) => {
+  try {
+    const available = await probe(hostname, 25)
+
+    return available
+  } catch (err) {
+    return false
+  }
+}
+
 export default dependencies => async (req, res) => {
   const promises = Object.keys(dependencies).map((key) => {
     switch (dependencies[key].type) {
-      case 'mongo':
-        return mongoCheck(dependencies[key].instance)
-
-      case 'oracle':
-        return oracleCheck(dependencies[key].instance)
-
-      case 'api':
-        return apiCheck(dependencies[key].url)
-
+      case 'mongo': return mongoCheck(dependencies[key].instance)
+      case 'oracle': return oracleCheck(dependencies[key].instance)
+      case 'api': return apiCheck(dependencies[key].url)
+      case 'exchange': return exchangeCheck(dependencies[key].hostname)
       default: return Promise.reject()
     }
   })
