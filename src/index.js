@@ -61,7 +61,7 @@ export default dependencies => async (req, res) => {
 
   const health = Object.keys(dependencies)
     .reduce((acc, dependency, i) => ({ ...acc, [dependency]: statuses[i] }), {})
-  const status = Object.values(health).every(x => x === 'up') ? OK : SERVICE_UNAVAILABLE
+  const status = Object.values(health).every(x => x) ? OK : SERVICE_UNAVAILABLE
 
   res.status(status).json(health)
 }
