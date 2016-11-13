@@ -1,4 +1,4 @@
-import { OK } from 'http-status'
+import { OK, SERVICE_UNAVAILABLE } from 'http-status'
 import fetch from 'node-fetch'
 import tcpp from 'tcp-ping'
 
@@ -61,6 +61,7 @@ export default dependencies => async (req, res) => {
 
   const health = Object.keys(dependencies)
     .reduce((acc, dependency, i) => ({ ...acc, [dependency]: statuses[i] }), {})
+  const status = Object.values(health).every(x => x === 'up') ? OK : SERVICE_UNAVAILABLE
 
-  res.status(OK).json(health)
+  res.status(status).json(health)
 }
