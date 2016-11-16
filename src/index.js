@@ -46,6 +46,18 @@ export const exchangeCheck = async (hostname) => {
   }
 }
 
+export const redisCheck = async (client) => {
+  try {
+    client.on('error', (error) => {
+      throw error
+    })
+
+    return true
+  } catch (err) {
+    return false
+  }
+}
+
 export default dependencies => async (req, res) => {
   const promises = Object.keys(dependencies).map((key) => {
     switch (dependencies[key].type) {
