@@ -1,6 +1,7 @@
 import { OK, SERVICE_UNAVAILABLE } from 'http-status'
 import fetch from 'node-fetch'
 import tcpp from 'tcp-ping'
+import redis from 'redis'
 
 function probe(hostname, port) {
   return new Promise((resolve, reject) => {
@@ -46,14 +47,17 @@ export const exchangeCheck = async (hostname) => {
   }
 }
 
-export const redisCheck = async (client) => {
+export const redisCheck = async (hostname) => {
   try {
-    client.on('error', (error) => {
-      throw error
+    const client = redis.createClient(6379, hostname)
+    client.on('error', (err) => {
+      client.quit()
+      throw err
     })
 
     return true
   } catch (err) {
+    console.log(err)
     return false
   }
 }
@@ -65,6 +69,7 @@ export default dependencies => async (req, res) => {
       case 'oracle': return oracleCheck(dependencies[key].instance)
       case 'api': return apiCheck(dependencies[key].url)
       case 'exchange': return exchangeCheck(dependencies[key].hostname)
+      case 'redis': return redisCheck(dependencies[key].hostname)
       default: return Promise.reject()
     }
   })
