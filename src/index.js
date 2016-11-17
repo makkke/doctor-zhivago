@@ -57,6 +57,7 @@ export const redisCheck = async (hostname) => {
 
     return true
   } catch (err) {
+
     return false
   }
 }
