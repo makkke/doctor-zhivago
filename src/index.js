@@ -57,19 +57,41 @@ export const redisCheck = async (hostname) => {
 
     return true
   } catch (err) {
+    return false
+  }
+}
 
+export const cityworksCheck = async (url, token) => {
+  try {
+    const response = await fetch(`${url}/services/authentication/validate?data={"Token": ${token}}`, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) return false
+
+    const json = await response.json()
+
+    return json.Value === true
+  } catch (err) {
     return false
   }
 }
 
 export default dependencies => async (req, res) => {
   const promises = Object.keys(dependencies).map((key) => {
-    switch (dependencies[key].type) {
-      case 'mongo': return mongoCheck(dependencies[key].instance)
-      case 'oracle': return oracleCheck(dependencies[key].instance)
-      case 'api': return apiCheck(dependencies[key].url)
-      case 'exchange': return exchangeCheck(dependencies[key].hostname)
-      case 'redis': return redisCheck(dependencies[key].hostname)
+    const dependency = dependencies[key]
+
+    switch (dependency.type) {
+      case 'mongo': return mongoCheck(dependency.instance)
+      case 'oracle': return oracleCheck(dependency.instance)
+      case 'api': return apiCheck(dependency.url)
+      case 'exchange': return exchangeCheck(dependency.hostname)
+      case 'redis': return redisCheck(dependency.hostname)
+      case 'cityworks': return cityworksCheck(dependency.url, dependency.token)
+
       default: return Promise.reject()
     }
   })
