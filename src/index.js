@@ -74,7 +74,7 @@ export const cityworksCheck = async (url, token) => {
 
     const json = await response.json()
 
-    return json.Value === true
+    return json.Value
   } catch (err) {
     return false
   }
