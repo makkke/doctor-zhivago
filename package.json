@@ -4,6 +4,7 @@
   "description": "Basic Health Check For API Microservices",
   "main": "./lib/index.js",
   "scripts": {
+    "prepublish": "npm run build",
     "build": "babel --presets es2015,stage-0 -d lib/ src/",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
