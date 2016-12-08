@@ -80,6 +80,22 @@ export const cityworksCheck = async (url, token) => {
   }
 }
 
+export const mftCheck = sftp => (
+  new Promise((resolve) => {
+    if (sftp.client) {
+      sftp.client.readdir('/', (err) => {
+        if (err) {
+          resolve(false)
+        } else {
+          resolve(true)
+        }
+      })
+    } else {
+      resolve(false)
+    }
+  })
+)
+
 export default dependencies => async (req, res) => {
   const promises = Object.keys(dependencies).map((key) => {
     const dependency = dependencies[key]
@@ -91,6 +107,7 @@ export default dependencies => async (req, res) => {
       case 'exchange': return exchangeCheck(dependency.hostname)
       case 'redis': return redisCheck(dependency.hostname)
       case 'cityworks': return cityworksCheck(dependency.url, dependency.token)
+      case 'mft': return mftCheck(dependency.client)
 
       default: return Promise.reject()
     }
