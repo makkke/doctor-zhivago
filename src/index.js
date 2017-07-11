@@ -63,7 +63,7 @@ export const redisCheck = async (hostname) => {
 
 export const cityworksCheck = async (url, token) => {
   try {
-    const response = await fetch(`${url}/ams/services/authentication/validate?data={"Token": ${token}}`, {
+    const response = await fetch(`${url}/services/authentication/validate?data={"Token": ${token}}`, {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
