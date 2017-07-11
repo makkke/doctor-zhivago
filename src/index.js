@@ -2,6 +2,7 @@ import { OK, SERVICE_UNAVAILABLE } from 'http-status'
 import fetch from 'node-fetch'
 import tcpp from 'tcp-ping'
 import redis from 'redis'
+import qs from 'querystring'
 
 function probe(hostname, port) {
   return new Promise((resolve, reject) => {
@@ -63,7 +64,7 @@ export const redisCheck = async (hostname) => {
 
 export const cityworksCheck = async (url, token) => {
   try {
-    const response = await fetch(`${url}/services/authentication/validate?data={"Token": ${token}}`, {
+    const response = await fetch(`${url}/services/authentication/validate?data={"Token": ${qs.stringify(token)}}`, {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
