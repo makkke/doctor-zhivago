@@ -95,18 +95,19 @@ export const mftCheck = sftp => (
   })
 )
 
-export default dependencies => async (req, res) => {
-  const promises = Object.keys(dependencies).map((key) => {
-    const dependency = dependencies[key]
+export default params => async (req, res) => {
+  const dependencies = Object.entries(params).filter(x => x[1].type)
+  const statics = Object.entries(params).filter(x => !x[1].type)
 
-    switch (dependency.type) {
-      case 'mongo': return mongoCheck(dependency.instance)
-      case 'oracle': return oracleCheck(dependency.instance)
-      case 'api': return apiCheck(dependency.url)
-      case 'exchange': return exchangeCheck(dependency.hostname)
-      case 'redis': return redisCheck(dependency.hostname)
-      case 'cityworks': return cityworksCheck(dependency.url, dependency.token)
-      case 'mft': return mftCheck(dependency.client)
+  const promises = dependencies.map(([property, value]) => {
+    switch (value.type) {
+      case 'mongo': return mongoCheck(value.instance)
+      case 'oracle': return oracleCheck(value.instance)
+      case 'api': return apiCheck(value.url)
+      case 'exchange': return exchangeCheck(value.hostname)
+      case 'redis': return redisCheck(value.hostname)
+      case 'cityworks': return cityworksCheck(value.url, value.token)
+      case 'mft': return mftCheck(value.client)
 
       default: return Promise.reject()
     }
@@ -114,9 +115,12 @@ export default dependencies => async (req, res) => {
 
   const statuses = await Promise.all(promises)
 
-  const health = Object.keys(dependencies)
-    .reduce((acc, dependency, i) => ({ ...acc, [dependency]: statuses[i] }), {})
-  const status = Object.values(health).every(x => x) ? OK : SERVICE_UNAVAILABLE
+  const dependenciesObject = dependencies
+    .reduce((acc, x, i) => ({ ...acc, [x[0]]: statuses[i] }), {})
+  const staticsObject = statics
+    .reduce((acc, x) => ({ ...acc, [x[0]]: x[1] }), {})
+  const health = { ...dependenciesObject, ...staticsObject }
+  const status = statuses.every(x => x) ? OK : SERVICE_UNAVAILABLE
 
   res.status(status).json(health)
 }
